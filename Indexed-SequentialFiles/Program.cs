@@ -28,30 +28,34 @@ DBMS dBMS = new DBMS("index", "mainarea", "overflow");
 dBMS.PrintRecordsInOrder();
 
 Record r = new Record(8, 1, 1, 1, 1, 1, -1, (byte)Flag.Normal);
-dBMS.InsertRecord(r);
+dBMS.AddRecord(r);
 dBMS.PrintRecordsInOrder();
 r = new Record(10, 1, 1, 1, 1, 1, -1, (byte)Flag.Normal);
-dBMS.InsertRecord(r);
+dBMS.AddRecord(r);
 
 r = new Record(1, 1, 1, 1, 1, 1, -1, (byte)Flag.Normal);
-dBMS.InsertRecord(r);
+dBMS.AddRecord(r);
 
 r = new Record(4, 1, 1, 1, 1, 1, -1, (byte)Flag.Normal);
-dBMS.InsertRecord(r);
+dBMS.AddRecord(r);
 
 r = new Record(2, 1, 1, 1, 1, 1, -1, (byte)Flag.Normal);
-dBMS.InsertRecord(r);
+dBMS.AddRecord(r);
 r = new Record(13, 1, 1, 1, 1, 1, -1, (byte)Flag.Normal);
-dBMS.InsertRecord(r);
+dBMS.AddRecord(r);
 
 r = new Record(9, 1, 1, 1, 1, 1, -1, (byte)Flag.Normal);
-dBMS.InsertRecord(r);
+dBMS.AddRecord(r);
 
 r = new Record(11, 1, 1, 1, 1, 1, -1, (byte)Flag.Normal);
-dBMS.InsertRecord(r);
+dBMS.AddRecord(r);
 
 r = new Record(12, 1, 1, 1, 1, 1, -1, (byte)Flag.Normal);
-dBMS.InsertRecord(r);
+dBMS.AddRecord(r);
+dBMS.PrintRecordsInOrder();
+dBMS.UpdateRecord(4, new Record(4, 2, 2, 2, 2, 2, -1 , (byte)Flag.Normal));
+dBMS.UpdateRecord(13, new Record(13, 2, 2, 2, 2, 2, -1, (byte)Flag.Normal));
+dBMS.UpdateRecord(11, new Record(11, 2, 2, 2, 2, 2, -1, (byte)Flag.Normal));
 dBMS.PrintRecordsInOrder();
 dBMS.ReorganizeFile();
 dBMS.PrintPages();

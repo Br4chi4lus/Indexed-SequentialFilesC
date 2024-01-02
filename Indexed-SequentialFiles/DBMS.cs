@@ -259,9 +259,8 @@ namespace Indexed_SequentialFiles
             }
         }
 
-        public void InsertRecord(Record record)
-        {
-            FindRecordInfo findRecordInfo = this.FindRecord(record);
+        public void InsertRecord(Record record, FindRecordInfo findRecordInfo)
+        {            
             if (record.GetKey() == findRecordInfo.record.GetKey())
             {
                 return;
@@ -328,7 +327,11 @@ namespace Indexed_SequentialFiles
             }
             
         }
-
+        public void AddRecord(Record record)
+        {
+            FindRecordInfo findRecordInfo = this.FindRecord(record);
+            this.InsertRecord(record, findRecordInfo);
+        }
         public void DeleteRecord(int key)
         {
             Record record = new Record(key);
@@ -473,6 +476,41 @@ namespace Indexed_SequentialFiles
             System.IO.File.Move(readerWriter.GetFileName(), this.mainAreaReaderWriter.GetFileName());
             this.indices = newIndices;
             this.pageNumber = -1;
+        }
+
+        public void UpdateRecord(int key, Record record)
+        {
+            Record tmp = new Record(key, 1, 1, 1, 1, 1, -1, (byte)Flag.Empty);
+            FindRecordInfo findRecordInfo = this.FindRecord(tmp);
+            if (key != findRecordInfo.record.GetKey())
+            {
+                return;
+            }
+            if (key == record.GetKey())
+            {
+                if (this.readingMainArea != findRecordInfo.readingMainArea || this.pageNumber != findRecordInfo.pageNumber)
+                {
+                    this.readingMainArea = findRecordInfo.readingMainArea;
+                    this.pageNumber = findRecordInfo.pageNumber;
+                    this.Page.SetRecords(findRecordInfo.readerWriter.ReadPageOfRecords(this.pageNumber));
+                }
+                record.SetFlag(findRecordInfo.record.GetFlag());
+                record.SetNextRecord(findRecordInfo.record.GetNextRecord());
+                this.Page.SetRecord(findRecordInfo.positionOnPage, record);
+                findRecordInfo.readerWriter.WritePageOfRecords(this.pageNumber, this.Page.GetRecords());
+            }
+            else
+            {
+                if (this.readingMainArea != findRecordInfo.readingMainArea || this.pageNumber != findRecordInfo.pageNumber)
+                {
+                    this.readingMainArea = findRecordInfo.readingMainArea;
+                    this.pageNumber = findRecordInfo.pageNumber;
+                    this.Page.SetRecords(findRecordInfo.readerWriter.ReadPageOfRecords(this.pageNumber));
+                }
+                this.Page.MarkToDelete(findRecordInfo.positionOnPage);
+                findRecordInfo.readerWriter.WritePageOfRecords(this.pageNumber, this.Page.GetRecords());
+                this.AddRecord(record);//najpierw dodać potem usunać
+            }
         }
     }
 }
