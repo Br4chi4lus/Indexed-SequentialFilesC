@@ -35,6 +35,7 @@ namespace Indexed_SequentialFiles
                 records[i] = new Record(tmp);
             }
             fileStream.Close();
+            ++this.numberOfOperations;
             return records;
         }
 
@@ -51,6 +52,7 @@ namespace Indexed_SequentialFiles
                 Utils.MoveBytes(bytes, tmp, i * Index.GetSize(), 0, Index.GetSize());
                 indices[i] = new Index(tmp);
             }
+            ++this.numberOfOperations;
             fileStream.Close();
             return indices;
         }
@@ -63,6 +65,7 @@ namespace Indexed_SequentialFiles
                 fileStream.Write(records[i].GetBytes());
             }
             fileStream.Close();
+            ++this.numberOfOperations;
         }
     }
 }

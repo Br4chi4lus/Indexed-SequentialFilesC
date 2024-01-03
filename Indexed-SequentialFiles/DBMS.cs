@@ -19,7 +19,6 @@ namespace Indexed_SequentialFiles
         private ReaderWriter mainAreaReaderWriter;      
         private ReaderWriter overflowAreaReaderWriter;
         private ReaderWriter indexReaderWriter;
-
         private Page Page;
         private Page reorganizeFilePage;
         private Index[]? indices = null;
@@ -56,6 +55,10 @@ namespace Indexed_SequentialFiles
                 this.indices[i] = new Index(i * 20, i);
             }
             numberOfIndices = 1;/////////////////////
+        }
+        public int GetNumberOfOperations()
+        {
+            return this.indexReaderWriter.GetNumberOfOperations() + this.mainAreaReaderWriter.GetNumberOfOperations() + this.overflowAreaReaderWriter.GetNumberOfOperations();
         }
         /*
         *  Returns page number 
@@ -258,12 +261,15 @@ namespace Indexed_SequentialFiles
                 }
             }
         }
-
-        public void InsertRecord(Record record, FindRecordInfo findRecordInfo)
+        /*
+         * returns true if record was succesfully inserted
+         * returns false if record with given key was already present in the file
+         */
+        public bool InsertRecord(Record record, FindRecordInfo findRecordInfo)
         {            
             if (record.GetKey() == findRecordInfo.record.GetKey())
             {
-                return;
+                return false;
             }
             else if (findRecordInfo.record.GetFlag() == (byte)Flag.Empty)
             {
@@ -323,17 +329,30 @@ namespace Indexed_SequentialFiles
                 this.overflowPage.SetRecord(positionOnPage, record);
                 this.overflowAreaReaderWriter.WritePageOfRecords(this.pageNumberOverflowArea, this.overflowPage.GetRecords());
                 ++this.numberOfRecordsOverflowArea;*/
-                return;
+                
             }
-            
+            return true;
         }
-        public void AddRecord(Record record)
+        /*
+         * returns positive value if record was inserted
+         * otherwise returns negative value
+         */
+        public int AddRecord(Record record)
         {
+            int numberOfOperations = this.GetNumberOfOperations();
             FindRecordInfo findRecordInfo = this.FindRecord(record);
-            this.InsertRecord(record, findRecordInfo);
+            bool inserted = this.InsertRecord(record, findRecordInfo);
+            numberOfOperations = this.GetNumberOfOperations() - numberOfOperations;
+            if (inserted == false) 
+            {
+                Console.WriteLine("Record with given key = {0} already exists in the file", record.GetKey());
+                numberOfOperations = 0 - numberOfOperations;
+            }
+            return numberOfOperations;
         }
-        public void DeleteRecord(int key)
+        public int DeleteRecord(int key)
         {
+            int numberOfOperations = this.GetNumberOfOperations();
             Record record = new Record(key);
             FindRecordInfo  findRecordInfo = this.FindRecord(record);
             if (findRecordInfo.record.GetKey() == key) 
@@ -347,6 +366,7 @@ namespace Indexed_SequentialFiles
                 this.Page.GetRecord(findRecordInfo.positionOnPage).SetFlag((byte)Flag.Delete);
                 findRecordInfo.readerWriter.WritePageOfRecords(findRecordInfo.pageNumber, this.Page.GetRecords());
             }
+            return this.GetNumberOfOperations() - numberOfOperations;
         }
 
         public Record? GetNextRecord()
@@ -431,8 +451,9 @@ namespace Indexed_SequentialFiles
 
         }
 
-        public void ReorganizeFile()
+        public int ReorganizeFile()
         {
+            int numberOfOperations = this.GetNumberOfOperations();
             int recordsInPage = (int)Math.Floor(Utils.numberOfRecordsInPage * Utils.alpha);
             Page page = new Page();
             int positionOnPage = 0;
@@ -476,15 +497,17 @@ namespace Indexed_SequentialFiles
             System.IO.File.Move(readerWriter.GetFileName(), this.mainAreaReaderWriter.GetFileName());
             this.indices = newIndices;
             this.pageNumber = -1;
+            return this.GetNumberOfOperations() - numberOfOperations;
         }
 
-        public void UpdateRecord(int key, Record record)
+        public int UpdateRecord(int key, Record record)
         {
+            int numberOfOperations = this.GetNumberOfOperations();
             Record tmp = new Record(key, 1, 1, 1, 1, 1, -1, (byte)Flag.Empty);
             FindRecordInfo findRecordInfo = this.FindRecord(tmp);
             if (key != findRecordInfo.record.GetKey())
             {
-                return;
+                return this.GetNumberOfOperations() - numberOfOperations;
             }
             if (key == record.GetKey())
             {
@@ -494,13 +517,18 @@ namespace Indexed_SequentialFiles
                     this.pageNumber = findRecordInfo.pageNumber;
                     this.Page.SetRecords(findRecordInfo.readerWriter.ReadPageOfRecords(this.pageNumber));
                 }
-                record.SetFlag(findRecordInfo.record.GetFlag());
+                record.SetFlag((byte)Flag.Normal);
                 record.SetNextRecord(findRecordInfo.record.GetNextRecord());
                 this.Page.SetRecord(findRecordInfo.positionOnPage, record);
                 findRecordInfo.readerWriter.WritePageOfRecords(this.pageNumber, this.Page.GetRecords());
             }
             else
             {
+                if (this.AddRecord(record) < 0)
+                {                   
+                    return this.GetNumberOfOperations() - numberOfOperations;
+                }
+
                 if (this.readingMainArea != findRecordInfo.readingMainArea || this.pageNumber != findRecordInfo.pageNumber)
                 {
                     this.readingMainArea = findRecordInfo.readingMainArea;
@@ -509,8 +537,9 @@ namespace Indexed_SequentialFiles
                 }
                 this.Page.MarkToDelete(findRecordInfo.positionOnPage);
                 findRecordInfo.readerWriter.WritePageOfRecords(this.pageNumber, this.Page.GetRecords());
-                this.AddRecord(record);//najpierw dodać potem usunać
+                
             }
+            return this.GetNumberOfOperations() - numberOfOperations;
         }
     }
 }
