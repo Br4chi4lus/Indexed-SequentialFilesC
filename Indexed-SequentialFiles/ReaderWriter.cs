@@ -67,5 +67,17 @@ namespace Indexed_SequentialFiles
             fileStream.Close();
             ++this.numberOfOperations;
         }
+
+        public void WritePageOfIndices(int pageNumber, Index[] indices)
+        {
+            FileStream fileStream = new FileStream(fileName, FileMode.OpenOrCreate, FileAccess.ReadWrite);
+            fileStream.Seek(pageNumber * Record.GetSize() * Utils.numberOfIndicesInPage, SeekOrigin.Begin);
+            for (int i = 0; i < Utils.numberOfIndicesInPage; ++i)
+            {
+                fileStream.Write(indices[i].GetBytes());
+            }
+            fileStream.Close();
+            ++this.numberOfOperations;
+        }
     }
 }

@@ -19,7 +19,11 @@ namespace Indexed_SequentialFiles
             this.key = key;
             this.pageNumber = pageNumber;
         }
-
+        public Index()
+        {
+            this.key = -1;
+            this.pageNumber = -1;
+        }
         public Index(byte[] bytes)
         {
             this.key = BitConverter.ToInt32(bytes, 0);

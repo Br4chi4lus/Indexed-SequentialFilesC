@@ -51,17 +51,57 @@ r = new Record(11, 1, 1, 1, 1, 1, -1, (byte)Flag.Normal);
 dBMS.AddRecord(r);
 
 r = new Record(12, 1, 1, 1, 1, 1, -1, (byte)Flag.Normal);
+dBMS.PrintPages();
 dBMS.AddRecord(r);
 dBMS.PrintRecordsInOrder();
 dBMS.UpdateRecord(4, new Record(4, 2, 2, 2, 2, 2, -1 , (byte)Flag.Normal));
 dBMS.DeleteRecord(4);
 dBMS.PrintRecordsInOrder();
 dBMS.UpdateRecord(4, new Record(4, 3, 2, 2, 2, 2, -1, (byte)Flag.Normal));
-dBMS.UpdateRecord(13, new Record(4, 2, 2, 2, 2, 2, -1, (byte)Flag.Normal));
+dBMS.UpdateRecord(13, new Record(17, 2, 2, 2, 2, 2, -1, (byte)Flag.Normal));
 dBMS.UpdateRecord(11, new Record(11, 2, 2, 2, 2, 2, -1, (byte)Flag.Normal));
+dBMS.PrintPages();
 dBMS.PrintRecordsInOrder();
 dBMS.ReorganizeFile();
 dBMS.PrintPages();
 dBMS.PrintRecordsInOrder();
+char action = (char)0;
+while(action != 'q' || action != 'Q')
+{
+    PrintActions();
+    string line = Console.ReadLine();
+    action = line[0];
+    if(action < 'a')
+    {
+        int tmp = action + 'a' - 'A';
+        action = (char)tmp;
+    }
+    switch (action)
+    {
+        case 'a':
+            break;
+        case 'r':
+            break;
+        case 'o':
+            break;
+        case 'p':
+            dBMS.PrintRecordsInOrder();
+            break;
+        case 'f':
+            dBMS.PrintPages();
+            break;
+        case 'd':
+            break;
+        case 'u':
+            break;
+        case 't':
+            break;
+        case 'q':
+            break;
+        default:
+            Console.WriteLine("Couldn't recognize the action");
+            break;
+    }
+}
 Console.WriteLine("Hello, World!");
 

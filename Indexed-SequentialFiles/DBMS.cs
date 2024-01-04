@@ -29,7 +29,6 @@ namespace Indexed_SequentialFiles
         private int numberOfRecordsOverflowArea;
         private int currentIndexNumber;
         private int currentRecordPosition;
-        private int numberOfPagesOverflowArea;
         private Record? previousRecord;
 
         public DBMS(String indexFileName, String mainAreaFileName, String overflowAreaFileName)
@@ -55,6 +54,34 @@ namespace Indexed_SequentialFiles
                 this.indices[i] = new Index(i * 20, i);
             }
             numberOfIndices = 1;/////////////////////
+        }
+        public Index[] ExtendToFullPage(Index[] indices)
+        {
+            int newSize = (int)Math.Ceiling(indices.Length / (double)Utils.numberOfIndicesInPage) * Utils.numberOfIndicesInPage;
+            Index[] newIndices = new Index[newSize];
+            for(int i = 0; i < newSize; ++i)
+            {
+                if (i < indices.Length)
+                {
+                    newIndices[i] = indices[i];
+                }
+                else
+                {
+                    newIndices[i] = new Index();
+                }
+            }
+            return newIndices;
+        }
+        public int GetIndicesCount()
+        {
+            for(int i = 0; i < indices.Length; ++i)
+            {
+                if (indices[i].GetKey() == -1)
+                {
+                    return i + 1;
+                }
+            }
+            return indices.Length;
         }
         public int GetNumberOfOperations()
         {
@@ -350,6 +377,15 @@ namespace Indexed_SequentialFiles
             }
             return numberOfOperations;
         }
+        public Index[] GetPageIndices(int pageNumber)
+        {
+            Index[] page = new Index[Utils.numberOfIndicesInPage];
+            for (int i = 0; i < Utils.numberOfIndicesInPage; i++) 
+            {
+                page[i] = this.indices[pageNumber*Utils.numberOfIndicesInPage + i];
+            }
+            return page;
+        }
         public int DeleteRecord(int key)
         {
             int numberOfOperations = this.GetNumberOfOperations();
@@ -399,7 +435,7 @@ namespace Indexed_SequentialFiles
                 ++this.currentRecordPosition;
                 this.currentIndexNumber = this.currentRecordPosition / Utils.numberOfRecordsInPage;
                 int position = this.currentRecordPosition % Utils.numberOfRecordsInPage;
-                if(this.currentIndexNumber >= this.indices.Length) 
+                if(this.currentIndexNumber >= this.GetIndicesCount()) 
                 {
                     this.previousRecord = null;
                     this.currentIndexNumber = -1;
@@ -435,10 +471,11 @@ namespace Indexed_SequentialFiles
             }
         }
 
-        public void PrintPages()
+        public int PrintPages()
         {
+            int numberOfOperations = this.GetNumberOfOperations();
             Console.WriteLine("Main area:");
-            for (int i = 0; i < indices.Length; ++i)
+            for (int i = 0; i < this.GetIndicesCount(); ++i)
             {
                 this.Page.SetRecords(mainAreaReaderWriter.ReadPageOfRecords(i));
                 Console.WriteLine("Page number: {0}", i);
@@ -447,8 +484,23 @@ namespace Indexed_SequentialFiles
                     Console.WriteLine(this.Page.GetRecord(j));
                 }
             }
-            Console.WriteLine("Overflow area:");
 
+            Console.WriteLine("Overflow area:");
+            int numberOfPages = (int)Math.Ceiling(this.numberOfRecordsOverflowArea / (double)Utils.numberOfRecordsInPage);
+            if(numberOfPages == 0)
+            {
+                Console.WriteLine("Overflow area is empty");
+            }
+            for (int i = 0; i < numberOfPages; ++i)
+            {
+                this.Page.SetRecords(overflowAreaReaderWriter.ReadPageOfRecords(i));
+                Console.WriteLine("Page number: {0}", i);
+                for (int j = 0; j < Utils.numberOfRecordsInPage; ++j)
+                {
+                    Console.WriteLine(this.Page.GetRecord(j));
+                }
+            }
+            return this.GetNumberOfOperations() - numberOfOperations;
         }
 
         public int ReorganizeFile()
@@ -458,6 +510,7 @@ namespace Indexed_SequentialFiles
             Page page = new Page();
             int positionOnPage = 0;
             int pageNumber = 0;
+            int newNumberOfRecordsMainArea = 0;
             page.SetEmptyRecords();
             this.currentIndexNumber = -1;
             this.currentRecordPosition = -1;
@@ -478,6 +531,7 @@ namespace Indexed_SequentialFiles
                     Record tmp = (Record)record.Clone();
                     tmp.SetNextRecord(-1);
                     page.SetRecord(positionOnPage, tmp);
+                    ++newNumberOfRecordsMainArea;
                     ++positionOnPage;
                 }                
                 if (positionOnPage == recordsInPage)
@@ -496,7 +550,15 @@ namespace Indexed_SequentialFiles
             File.Delete(this.mainAreaReaderWriter.GetFileName());
             System.IO.File.Move(readerWriter.GetFileName(), this.mainAreaReaderWriter.GetFileName());
             this.indices = newIndices;
+            this.indices = this.ExtendToFullPage(newIndices);
+            for (int i = 0; i < Math.Ceiling(this.indices.Length / (double) Utils.numberOfIndicesInPage); ++i)
+            {
+                Index[] indicesPage = this.GetPageIndices(i);
+                this.indexReaderWriter.WritePageOfIndices(i, indicesPage);
+            }
             this.pageNumber = -1;
+            this.numberOfRecordsMainArea = newNumberOfRecordsMainArea;
+            this.numberOfRecordsOverflowArea = 0;
             return this.GetNumberOfOperations() - numberOfOperations;
         }
 
