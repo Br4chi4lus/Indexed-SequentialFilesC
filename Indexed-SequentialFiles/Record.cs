@@ -61,6 +61,17 @@ namespace Indexed_SequentialFiles
             this.nextRecord = -1;
             this.flag = (byte) Flag.Empty;
         }
+        public Record(int key, byte flag)
+        {
+            this.key = key;
+            this.a = 0;
+            this.b = 0;
+            this.c = 0;
+            this.d = 0;
+            this.e = 0;
+            this.nextRecord = -1;
+            this.flag = flag;
+        }
         public int GetKey() { return key; }
         public short GetNextRecord() { return nextRecord; }
         public byte GetFlag() { return flag; } 

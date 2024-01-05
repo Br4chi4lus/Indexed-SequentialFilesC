@@ -10,6 +10,7 @@ namespace Indexed_SequentialFiles
     {
         public static int numberOfRecordsInPage = 4;
         public static int numberOfIndicesInPage = 10;
+        public static int numberOfPagesInOverflowReorganize = 2;
         public static double alpha = 0.5;
         public static void MoveBytes(byte[] srcBytes, byte[] dstBytes, int srcPos, int dstPos, int size)
         {

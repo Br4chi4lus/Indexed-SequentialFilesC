@@ -25,7 +25,7 @@ page1.SetRecords(readerWriter.ReadPageOfRecords(0));
 Console.WriteLine("Hello, World!");*/
 
 DBMS dBMS = new DBMS("index", "mainarea", "overflow");
-dBMS.PrintRecordsInOrder();
+/*dBMS.PrintRecordsInOrder();
 
 Record r = new Record(8, 1, 1, 1, 1, 1, -1, (byte)Flag.Normal);
 dBMS.AddRecord(r);
@@ -64,9 +64,9 @@ dBMS.PrintPages();
 dBMS.PrintRecordsInOrder();
 dBMS.ReorganizeFile();
 dBMS.PrintPages();
-dBMS.PrintRecordsInOrder();
+dBMS.PrintRecordsInOrder();*/
 char action = (char)0;
-while(action != 'q' || action != 'Q')
+while(action != 'q')
 {
     PrintActions();
     string line = Console.ReadLine();
@@ -79,10 +79,29 @@ while(action != 'q' || action != 'Q')
     switch (action)
     {
         case 'a':
+            var line1 = Console.ReadLine();
+            var numbers = line1.Split(' ');
+            if (numbers.Length != 6) 
+            {
+                Console.WriteLine("Wrong input");
+            }
+            else
+            {
+                int[] ints = new int[6];
+                for(int i = 0; i < 6; ++i)
+                {
+                    ints[i] = Int32.Parse(numbers[i]);
+                }
+                Record record = new Record(ints[0], ints[1], ints[2], ints[3], ints[4], ints[5], -1, (byte)Flag.Normal);
+                dBMS.AddRecord(record);
+            }
             break;
         case 'r':
+
             break;
         case 'o':
+            dBMS.ReorganizeFile();
+            Console.WriteLine("File reorganized");
             break;
         case 'p':
             dBMS.PrintRecordsInOrder();
@@ -91,10 +110,99 @@ while(action != 'q' || action != 'Q')
             dBMS.PrintPages();
             break;
         case 'd':
+            var number = Console.ReadLine();
+            int key = Int32.Parse(number);
+            dBMS.DeleteRecord(key);
             break;
         case 'u':
+            line1 = Console.ReadLine();
+            numbers = line1.Split(' ');
+            if (numbers.Length != 7)
+            {
+                Console.WriteLine("Wrong input");
+            }
+            else
+            {
+                int[] ints = new int[7];
+                for (int i = 0; i < 7; ++i)
+                {
+                    ints[i] = Int32.Parse(numbers[i]);
+                }
+                Record record = new Record(ints[1], ints[2], ints[3], ints[4], ints[5], ints[6], -1, (byte)Flag.Normal);
+                dBMS.UpdateRecord(ints[0], record);
+            }
             break;
         case 't':
+            var fileName = Console.ReadLine();
+            FileStream fs = new FileStream(fileName, FileMode.Open, FileAccess.Read);
+            StreamReader streamReader = new StreamReader(fs);
+            char action1 = '\0';
+            while ((line = streamReader.ReadLine()) != null) 
+            {
+                action = line[0];
+                switch (action)
+                {
+                    case 'a':
+                        line1 = streamReader.ReadLine();
+                        numbers = line1.Split(' ');
+                        if (numbers.Length != 6)
+                        {
+                            Console.WriteLine("Wrong input");
+                        }
+                        else
+                        {
+                            int[] ints = new int[6];
+                            for (int i = 0; i < 6; ++i)
+                            {
+                                ints[i] = Int32.Parse(numbers[i]);
+                            }
+                            Record record = new Record(ints[0], ints[1], ints[2], ints[3], ints[4], ints[5], -1, (byte)Flag.Normal);
+                            dBMS.AddRecord(record);
+                        }
+                        break;
+                    case 'r':
+
+                        break;
+                    case 'o':
+                        dBMS.ReorganizeFile();
+                        Console.WriteLine("File reorganized");
+                        break;
+                    case 'p':
+                        dBMS.PrintRecordsInOrder();
+                        break;
+                    case 'f':
+                        dBMS.PrintPages();
+                        break;
+                    case 'd':
+                        number = streamReader.ReadLine();
+                        key = Int32.Parse(number);
+                        dBMS.DeleteRecord(key);
+                        break;
+                    case 'u':
+                        line1 = streamReader.ReadLine();
+                        numbers = line1.Split(' ');
+                        if (numbers.Length != 7)
+                        {
+                            Console.WriteLine("Wrong input");
+                        }
+                        else
+                        {
+                            int[] ints = new int[7];
+                            for (int i = 0; i < 7; ++i)
+                            {
+                                ints[i] = Int32.Parse(numbers[i]);
+                            }
+                            Record record = new Record(ints[1], ints[2], ints[3], ints[4], ints[5], ints[6], -1, (byte)Flag.Normal);
+                            dBMS.UpdateRecord(ints[0], record);
+                        }
+                        break;                   
+                    case 'q':
+                        break;
+                    default:
+                        Console.WriteLine("Couldn't recognize the action");
+                        break;
+                }
+            }
             break;
         case 'q':
             break;
@@ -103,5 +211,5 @@ while(action != 'q' || action != 'Q')
             break;
     }
 }
-Console.WriteLine("Hello, World!");
+
 
