@@ -71,6 +71,7 @@ while(action != 'q')
 {
     PrintActions();
     string line = Console.ReadLine();
+    var words = line.Split(' ');
     action = line[0];
     if(action < 'a')
     {
@@ -80,9 +81,9 @@ while(action != 'q')
     switch (action)
     {
         case 'a':
-            var line1 = Console.ReadLine();
-            var numbers = line1.Split(' ');
-            if (numbers.Length != 6) 
+            //var line1 = Console.ReadLine();
+            //var numbers = line1.Split(' ');
+            if (words.Length != 7) 
             {
                 Console.WriteLine("Wrong input");
             }
@@ -91,7 +92,7 @@ while(action != 'q')
                 int[] ints = new int[6];
                 for(int i = 0; i < 6; ++i)
                 {
-                    ints[i] = Int32.Parse(numbers[i]);
+                    ints[i] = Int32.Parse(words[i + 1]);
                 }
                 Record record = new Record(ints[0], ints[1], ints[2], ints[3], ints[4], ints[5], -1, (byte)Flag.Normal);
                 Console.WriteLine("Number of operations: {0}", dBMS.AddRecord(record));
@@ -102,8 +103,7 @@ while(action != 'q')
             }
             break;
         case 'r':
-            var number = Console.ReadLine();
-            int key = Int32.Parse(number);
+            int key = Int32.Parse(words[1]);
             int operations = dBMS.GetNumberOfOperations();
             FindRecordInfo findRecordInfo = dBMS.FindRecord(new Record(key));
             if (findRecordInfo.record.GetKey() == key)
@@ -128,8 +128,7 @@ while(action != 'q')
             Console.WriteLine("Printing after each action: {0}", printing);
             break;
         case 'd':
-            number = Console.ReadLine();
-            key = Int32.Parse(number);
+            key = Int32.Parse(words[1]);
             Console.WriteLine("Number of operations: {0}", dBMS.DeleteRecord(key));
             if (printing == true)
             {
@@ -137,9 +136,9 @@ while(action != 'q')
             }
             break;
         case 'u':
-            line1 = Console.ReadLine();
-            numbers = line1.Split(' ');
-            if (numbers.Length != 7)
+            //var line1 = Console.ReadLine();
+            //var numbers = line1.Split(' ');
+            if (words.Length != 8)
             {
                 Console.WriteLine("Wrong input");
             }
@@ -148,7 +147,7 @@ while(action != 'q')
                 int[] ints = new int[7];
                 for (int i = 0; i < 7; ++i)
                 {
-                    ints[i] = Int32.Parse(numbers[i]);
+                    ints[i] = Int32.Parse(words[i + 1]);
                 }
                 Record record = new Record(ints[1], ints[2], ints[3], ints[4], ints[5], ints[6], -1, (byte)Flag.Normal);
                 Console.WriteLine("Number of operations: {0}", dBMS.UpdateRecord(ints[0], record));
@@ -159,19 +158,20 @@ while(action != 'q')
             }
             break;
         case 't':
-            var fileName = Console.ReadLine();
+            var fileName = words[1];
             FileStream fs = new FileStream(fileName, FileMode.Open, FileAccess.Read);
             StreamReader streamReader = new StreamReader(fs);
             char action1 = '\0';
             while ((line = streamReader.ReadLine()) != null) 
             {
                 action = line[0];
+                words = line.Split(' ');
                 switch (action)
                 {
                     case 'a':
-                        line1 = streamReader.ReadLine();
-                        numbers = line1.Split(' ');
-                        if (numbers.Length != 6)
+                        //var line1 = streamReader.ReadLine();
+                       // var numbers = line1.Split(' ');
+                        if (words.Length != 7)
                         {
                             Console.WriteLine("Wrong input");
                         }
@@ -180,15 +180,18 @@ while(action != 'q')
                             int[] ints = new int[6];
                             for (int i = 0; i < 6; ++i)
                             {
-                                ints[i] = Int32.Parse(numbers[i]);
+                                ints[i] = Int32.Parse(words[i + 1]);
                             }
                             Record record = new Record(ints[0], ints[1], ints[2], ints[3], ints[4], ints[5], -1, (byte)Flag.Normal);
                             dBMS.AddRecord(record);
+                            if (printing == true)
+                            {
+                                dBMS.PrintPages();
+                            }
                         }
                         break;
                     case 'r':
-                        number = streamReader.ReadLine();
-                        key = Int32.Parse(number);
+                        key = Int32.Parse(words[1]);
                         operations = dBMS.GetNumberOfOperations();
                         findRecordInfo = dBMS.FindRecord(new Record(key));
                         if (findRecordInfo.record.GetKey() == key)
@@ -196,27 +199,30 @@ while(action != 'q')
                             Console.WriteLine();
                             Console.WriteLine(findRecordInfo.record.ToString());
                         }
-                        Console.WriteLine("Number of operations: {0}", dBMS.GetNumberOfOperations() - operations);
+                       // Console.WriteLine("Number of operations: {0}", dBMS.GetNumberOfOperations() - operations);
                         break;
                     case 'o':
+                        
                         dBMS.ReorganizeFile();
                         Console.WriteLine("File reorganized");
+                        if (printing == true)
+                        {
+                            dBMS.PrintPages();
+                        }
                         break;
                     case 'p':
                         dBMS.PrintRecordsInOrder();
                         break;
-                    case 'f':
-                        dBMS.PrintPages();
-                        break;
                     case 'd':
-                        number = streamReader.ReadLine();
-                        key = Int32.Parse(number);
+                        key = Int32.Parse(words[1]);
                         dBMS.DeleteRecord(key);
+                        if (printing == true)
+                        {
+                            dBMS.PrintPages();
+                        }
                         break;
                     case 'u':
-                        line1 = streamReader.ReadLine();
-                        numbers = line1.Split(' ');
-                        if (numbers.Length != 7)
+                        if (words.Length != 8)
                         {
                             Console.WriteLine("Wrong input");
                         }
@@ -225,19 +231,22 @@ while(action != 'q')
                             int[] ints = new int[7];
                             for (int i = 0; i < 7; ++i)
                             {
-                                ints[i] = Int32.Parse(numbers[i]);
+                                ints[i] = Int32.Parse(words[i + 1]);
                             }
                             Record record = new Record(ints[1], ints[2], ints[3], ints[4], ints[5], ints[6], -1, (byte)Flag.Normal);
                             dBMS.UpdateRecord(ints[0], record);
+                            if (printing == true)
+                            {
+                                dBMS.PrintPages();
+                            }
                         }
                         break;                   
-                    case 'q':
-                        break;
                     default:
                         Console.WriteLine("Couldn't recognize the action");
                         break;
                 }
             }
+            Console.WriteLine("Number of operations: {0}", dBMS.GetNumberOfOperations());
             break;
         case 'q':
             break;

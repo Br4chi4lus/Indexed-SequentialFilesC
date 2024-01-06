@@ -418,7 +418,8 @@ namespace Indexed_SequentialFiles
             this.numberOfRecordsOverflowArea = 0;
             this.numberOfDeletedRecords = 0;
             System.IO.File.Delete(this.overflowAreaReaderWriter.GetFileName());
-            return this.GetNumberOfOperations() - numberOfOperations + readerWriter.GetNumberOfOperations();
+            this.mainAreaReaderWriter.AddOperations(readerWriter.GetNumberOfOperations());
+            return this.GetNumberOfOperations() - numberOfOperations ;
         }
 
         /*
@@ -436,7 +437,7 @@ namespace Indexed_SequentialFiles
                 Console.WriteLine("Record with given key = {0} already exists in the file", record.GetKey());
                 numberOfOperations = 0 - numberOfOperations;
             }
-            if (this.numberOfRecordsOverflowArea == Utils.numberOfPagesInOverflowReorganize * Utils.numberOfRecordsInPage)
+            if (this.numberOfRecordsOverflowArea == Math.Ceiling(this.numberOfRecordsMainArea * Utils.beta))
             {
                 this.ReorganizeFile();
                 Console.WriteLine("Had to reorganize file");
@@ -552,6 +553,8 @@ namespace Indexed_SequentialFiles
             for (int i = 0; i < this.GetIndicesCount(); ++i)
             {
                 this.Page.SetRecords(mainAreaReaderWriter.ReadPageOfRecords(i));
+                this.pageNumber = i;
+                this.readingMainArea = true;
                 Console.WriteLine("Page number: {0}", i);
                 for (int j = 0; j < Utils.numberOfRecordsInPage; ++j)
                 {
@@ -568,6 +571,8 @@ namespace Indexed_SequentialFiles
             for (int i = 0; i < numberOfPages; ++i)
             {
                 this.Page.SetRecords(overflowAreaReaderWriter.ReadPageOfRecords(i));
+                this.pageNumber = i;
+                this.readingMainArea = false;
                 Console.WriteLine("Page number: {0}", i);
                 for (int j = 0; j < Utils.numberOfRecordsInPage; ++j)
                 {

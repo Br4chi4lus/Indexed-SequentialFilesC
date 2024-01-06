@@ -79,5 +79,9 @@ namespace Indexed_SequentialFiles
             fileStream.Close();
             ++this.numberOfOperations;
         }
+        public void AddOperations(int operations)
+        {
+            this.numberOfOperations += operations;
+        }
     }
 }
