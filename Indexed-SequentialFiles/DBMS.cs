@@ -378,13 +378,13 @@ namespace Indexed_SequentialFiles
             ReaderWriter readerWriter = new("tmp.bin");
             Record record = this.GetNextRecord();
             while (record != null)
-            {
-                if (positionOnPage == 0 && record.GetKey() != -1)
-                {
-                    newIndices[pageNumber] = new Index(record.GetKey(), pageNumber);
-                }
+            {               
                 if (record.GetFlag() == (byte)Flag.Normal || record.GetFlag() == (byte)Flag.First)
                 {
+                    if (positionOnPage == 0)
+                    {
+                        newIndices[pageNumber] = new Index(record.GetKey(), pageNumber);
+                    }
                     Record tmp = (Record)record.Clone();
                     tmp.SetNextRecord(-1);
                     page.SetRecord(positionOnPage, tmp);
@@ -417,7 +417,8 @@ namespace Indexed_SequentialFiles
             this.numberOfRecordsMainArea = newNumberOfRecordsMainArea;
             this.numberOfRecordsOverflowArea = 0;
             this.numberOfDeletedRecords = 0;
-            return this.GetNumberOfOperations() - numberOfOperations;
+            System.IO.File.Delete(this.overflowAreaReaderWriter.GetFileName());
+            return this.GetNumberOfOperations() - numberOfOperations + readerWriter.GetNumberOfOperations();
         }
 
         /*
@@ -520,8 +521,9 @@ namespace Indexed_SequentialFiles
             return record;
         }
 
-        public void PrintRecordsInOrder()
+        public int PrintRecordsInOrder()
         {
+            int numberOfOperations = this.GetNumberOfOperations();
             this.currentIndexNumber = -1;
             this.currentRecordPosition = -1;
             this.previousRecord = null;
@@ -535,11 +537,17 @@ namespace Indexed_SequentialFiles
                 }               
                 record = this.GetNextRecord();
             }
+            return this.GetNumberOfOperations() - numberOfOperations;
         }
 
         public int PrintPages()
         {
             int numberOfOperations = this.GetNumberOfOperations();
+            Console.WriteLine("Index:");
+            for(int i =0; i < indices.Length; ++i)
+            {
+                Console.WriteLine(indices[i].ToString());
+            }
             Console.WriteLine("Main area:");
             for (int i = 0; i < this.GetIndicesCount(); ++i)
             {

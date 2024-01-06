@@ -45,6 +45,10 @@ namespace Indexed_SequentialFiles
             Utils.MoveBytes(BitConverter.GetBytes(this.pageNumber), bytes, 0, 4, 4);
             return bytes;
         }
+        public override string ToString()
+        {
+            return "Key: " + this.key + " Page number: " + this.pageNumber;
+        }
 
     }
 }

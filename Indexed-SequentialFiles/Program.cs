@@ -7,7 +7,7 @@ void PrintActions()
     Console.WriteLine("r - to read record");
     Console.WriteLine("o - to reorganize file");
     Console.WriteLine("p - print the file in order");
-    Console.WriteLine("f - print the file using pages");
+    Console.WriteLine("f - toogle printing the file using pages");
     Console.WriteLine("d - delete record");
     Console.WriteLine("u - update record");
     Console.WriteLine("t - read commands from txt file");
@@ -66,6 +66,7 @@ dBMS.ReorganizeFile();
 dBMS.PrintPages();
 dBMS.PrintRecordsInOrder();*/
 char action = (char)0;
+bool printing = false;
 while(action != 'q')
 {
     PrintActions();
@@ -93,26 +94,47 @@ while(action != 'q')
                     ints[i] = Int32.Parse(numbers[i]);
                 }
                 Record record = new Record(ints[0], ints[1], ints[2], ints[3], ints[4], ints[5], -1, (byte)Flag.Normal);
-                dBMS.AddRecord(record);
+                Console.WriteLine("Number of operations: {0}", dBMS.AddRecord(record));
+                if (printing == true)
+                {
+                    dBMS.PrintPages();
+                }
             }
             break;
         case 'r':
-
-            break;
-        case 'o':
-            dBMS.ReorganizeFile();
-            Console.WriteLine("File reorganized");
-            break;
-        case 'p':
-            dBMS.PrintRecordsInOrder();
-            break;
-        case 'f':
-            dBMS.PrintPages();
-            break;
-        case 'd':
             var number = Console.ReadLine();
             int key = Int32.Parse(number);
-            dBMS.DeleteRecord(key);
+            int operations = dBMS.GetNumberOfOperations();
+            FindRecordInfo findRecordInfo = dBMS.FindRecord(new Record(key));
+            if (findRecordInfo.record.GetKey() == key)
+            {
+                Console.WriteLine();
+                Console.WriteLine(findRecordInfo.record.ToString());
+            }
+            Console.WriteLine("Number of operations: {0}", dBMS.GetNumberOfOperations() - operations);
+            break;
+        case 'o':           
+            Console.WriteLine("Number of operations: {0}", dBMS.ReorganizeFile());
+            if (printing == true)
+            {
+                dBMS.PrintPages();
+            }
+            break;
+        case 'p':
+            Console.WriteLine("Number of operations: {0}", dBMS.PrintRecordsInOrder());
+            break;
+        case 'f':
+            printing = !printing;
+            Console.WriteLine("Printing after each action: {0}", printing);
+            break;
+        case 'd':
+            number = Console.ReadLine();
+            key = Int32.Parse(number);
+            Console.WriteLine("Number of operations: {0}", dBMS.DeleteRecord(key));
+            if (printing == true)
+            {
+                dBMS.PrintPages();
+            }
             break;
         case 'u':
             line1 = Console.ReadLine();
@@ -129,7 +151,11 @@ while(action != 'q')
                     ints[i] = Int32.Parse(numbers[i]);
                 }
                 Record record = new Record(ints[1], ints[2], ints[3], ints[4], ints[5], ints[6], -1, (byte)Flag.Normal);
-                dBMS.UpdateRecord(ints[0], record);
+                Console.WriteLine("Number of operations: {0}", dBMS.UpdateRecord(ints[0], record));
+                if (printing == true)
+                {
+                    dBMS.PrintPages();
+                }
             }
             break;
         case 't':
@@ -161,7 +187,16 @@ while(action != 'q')
                         }
                         break;
                     case 'r':
-
+                        number = streamReader.ReadLine();
+                        key = Int32.Parse(number);
+                        operations = dBMS.GetNumberOfOperations();
+                        findRecordInfo = dBMS.FindRecord(new Record(key));
+                        if (findRecordInfo.record.GetKey() == key)
+                        {
+                            Console.WriteLine();
+                            Console.WriteLine(findRecordInfo.record.ToString());
+                        }
+                        Console.WriteLine("Number of operations: {0}", dBMS.GetNumberOfOperations() - operations);
                         break;
                     case 'o':
                         dBMS.ReorganizeFile();
