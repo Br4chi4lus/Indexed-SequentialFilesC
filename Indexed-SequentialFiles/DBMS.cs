@@ -41,7 +41,7 @@ namespace Indexed_SequentialFiles
             this.Page = new Page();
             this.pageNumber = -1;
             this.numberOfRecordsOverflowArea = 0;
-            this.numberOfRecordsMainArea = 0;
+            this.numberOfRecordsMainArea = 1;
             this.currentIndexNumber = -1;
             this.currentRecordPosition = -1;
             this.previousRecord = null;
@@ -56,11 +56,11 @@ namespace Indexed_SequentialFiles
         }
         public Index[] ExtendToFullPage(Index[] indices)
         {
-            int newSize = (int)Math.Ceiling(indices.Length / (double)Utils.numberOfIndicesInPage) * Utils.numberOfIndicesInPage;
+            int newSize = (int)Math.Ceiling(this.GetIndicesCount() / (double)Utils.numberOfIndicesInPage) * Utils.numberOfIndicesInPage;
             Index[] newIndices = new Index[newSize];
             for(int i = 0; i < newSize; ++i)
             {
-                if (i < indices.Length)
+                if (i < this.GetIndicesCount())
                 {
                     newIndices[i] = indices[i];
                 }
@@ -75,7 +75,7 @@ namespace Indexed_SequentialFiles
         {
             for(int i = 0; i < indices.Length; ++i)
             {
-                if (indices[i].GetKey() == -1)
+                if (indices[i] == null || indices[i].GetKey() == -1)
                 {
                     return i;
                 }
@@ -321,7 +321,6 @@ namespace Indexed_SequentialFiles
                 }
                 findRecordInfo.record.SetNextRecord((short)this.numberOfRecordsOverflowArea);
                 this.Page.SetRecord(findRecordInfo.positionOnPage,findRecordInfo.record);
-                //? findRecordInfo.readerWriter.WritePageOfRecords(findRecordInfo.pageNumber, findRecordInfo.page.GetRecords());
                 int pageNumber = Utils.CalculatePageNumberRecord((short)this.numberOfRecordsOverflowArea);
                 int positionOnPage = Utils.CalculatePositionOnPage((short)this.numberOfRecordsOverflowArea);
                 if (pageNumber != this.pageNumber || findRecordInfo.readerWriter == this.mainAreaReaderWriter)
@@ -341,21 +340,6 @@ namespace Indexed_SequentialFiles
                 this.Page.SetRecord(positionOnPage, record);
                 this.overflowAreaReaderWriter.WritePageOfRecords(this.pageNumber, this.Page.GetRecords());
                 ++this.numberOfRecordsOverflowArea;
-                /*if (this.pageNumber != pageNumber)
-                {
-                    this.pageNumberOverflowArea = pageNumber;
-                    if (positionOnPage == 0)
-                    {
-                        this.overflowPage.SetEmptyRecords();
-                    }
-                    else
-                    {
-                        this.overflowPage.SetRecords(this.overflowAreaReaderWriter.ReadPageOfRecords(this.pageNumberOverflowArea));
-                    }
-                }
-                this.overflowPage.SetRecord(positionOnPage, record);
-                this.overflowAreaReaderWriter.WritePageOfRecords(this.pageNumberOverflowArea, this.overflowPage.GetRecords());
-                ++this.numberOfRecordsOverflowArea;*/
                 
             }
             return true;
@@ -437,9 +421,9 @@ namespace Indexed_SequentialFiles
                 Console.WriteLine("Record with given key = {0} already exists in the file", record.GetKey());
                 numberOfOperations = 0 - numberOfOperations;
             }
-            if (this.numberOfRecordsOverflowArea == Math.Ceiling(this.numberOfRecordsMainArea * Utils.beta))
+            if (this.numberOfRecordsOverflowArea + this.numberOfDeletedRecords == Math.Ceiling(this.numberOfRecordsMainArea * Utils.beta))
             {
-                this.ReorganizeFile();
+                numberOfOperations += this.ReorganizeFile();
                 Console.WriteLine("Had to reorganize file");
             }
             return numberOfOperations;
@@ -469,6 +453,11 @@ namespace Indexed_SequentialFiles
                 ++this.numberOfDeletedRecords;
                 this.Page.GetRecord(findRecordInfo.positionOnPage).SetFlag((byte)Flag.Delete);
                 findRecordInfo.readerWriter.WritePageOfRecords(findRecordInfo.pageNumber, this.Page.GetRecords());
+                if (this.numberOfRecordsOverflowArea + this.numberOfDeletedRecords == Math.Ceiling(this.numberOfRecordsMainArea * Utils.beta))
+                {
+                    this.ReorganizeFile();
+                    Console.WriteLine("Had to reorganize file");
+                }
             }
             return this.GetNumberOfOperations() - numberOfOperations;
         }
@@ -538,6 +527,7 @@ namespace Indexed_SequentialFiles
                 }               
                 record = this.GetNextRecord();
             }
+            Console.WriteLine("Number of records in file: {0}", this.numberOfRecordsMainArea + this.numberOfRecordsOverflowArea);
             return this.GetNumberOfOperations() - numberOfOperations;
         }
 
@@ -629,7 +619,12 @@ namespace Indexed_SequentialFiles
                 }
                 this.Page.MarkToDelete(findRecordInfo.positionOnPage);
                 findRecordInfo.readerWriter.WritePageOfRecords(this.pageNumber, this.Page.GetRecords());
-                
+                ++this.numberOfDeletedRecords;
+                if (this.numberOfRecordsOverflowArea + this.numberOfDeletedRecords == Math.Ceiling(this.numberOfRecordsMainArea * Utils.beta))
+                {
+                    this.ReorganizeFile();
+                    Console.WriteLine("Had to reorganize file");
+                }
             }
             return this.GetNumberOfOperations() - numberOfOperations;
         }
