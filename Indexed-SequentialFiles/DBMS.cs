@@ -33,10 +33,14 @@ namespace Indexed_SequentialFiles
         private Record? previousRecord;
         public DBMS(String indexFileName, String mainAreaFileName, String overflowAreaFileName)
         {
+
             this.readingMainArea = true;
             this.mainAreaReaderWriter = new ReaderWriter(mainAreaFileName);
             this.overflowAreaReaderWriter = new ReaderWriter(overflowAreaFileName);
             this.indexReaderWriter = new ReaderWriter(indexFileName);
+            System.IO.File.Delete(this.overflowAreaReaderWriter.GetFileName());
+            System.IO.File.Delete(this.mainAreaReaderWriter.GetFileName());
+            System.IO.File.Delete(this.indexReaderWriter.GetFileName());
             this.numberOfDeletedRecords = 0;
             this.Page = new Page();
             this.pageNumber = -1;
@@ -357,11 +361,12 @@ namespace Indexed_SequentialFiles
             this.currentRecordPosition = -1;
             this.previousRecord = null;
             this.readingMainArea = true;
-            int numberOfIndices = (int)Math.Ceiling((this.numberOfRecordsMainArea + this.numberOfRecordsOverflowArea - this.numberOfDeletedRecords) / (double)recordsInPage);
+            this.pageNumber = -1;
+            int numberOfIndices = (int)Math.Ceiling((this.numberOfRecordsMainArea + this.numberOfRecordsOverflowArea - this.numberOfDeletedRecords) / (double)recordsInPage) + 1;
             Index[] newIndices = new Index[numberOfIndices];
             ReaderWriter readerWriter = new("tmp.bin");
             Record record = this.GetNextRecord();
-            while (record != null)
+            while (record != null && pageNumber != numberOfIndices)
             {               
                 if (record.GetFlag() == (byte)Flag.Normal || record.GetFlag() == (byte)Flag.First)
                 {
@@ -374,15 +379,18 @@ namespace Indexed_SequentialFiles
                     page.SetRecord(positionOnPage, tmp);
                     ++newNumberOfRecordsMainArea;
                     ++positionOnPage;
-                }
-                if (positionOnPage == recordsInPage)
-                {
-                    readerWriter.WritePageOfRecords(pageNumber, page.GetRecords());
-                    page.SetEmptyRecords();
-                    positionOnPage = 0;
-                    ++pageNumber;
+                    if (positionOnPage == recordsInPage)
+                    {
+                        readerWriter.WritePageOfRecords(pageNumber, page.GetRecords());
+                        page.SetEmptyRecords();
+                        positionOnPage = 0;
+                        ++pageNumber;
+                        
+                    }
+                    
                 }
                 record = this.GetNextRecord();
+
             }
             if (positionOnPage != 0)
             {

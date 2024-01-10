@@ -172,8 +172,8 @@ while(action != 'q')
                         findRecordInfo = dBMS.FindRecord(new Record(key));
                         if (findRecordInfo.record.GetKey() == key)
                         {
-                            Console.WriteLine();
-                            Console.WriteLine(findRecordInfo.record.ToString());
+                           // Console.WriteLine();
+                          //  Console.WriteLine(findRecordInfo.record.ToString());
                         }
                         break;
                     case 'o':                        
