@@ -32,8 +32,6 @@ while(action != 'q')
     switch (action)
     {
         case 'a':
-            //var line1 = Console.ReadLine();
-            //var numbers = line1.Split(' ');
             if (words.Length != 7) 
             {
                 Console.WriteLine("Wrong input");
@@ -172,8 +170,7 @@ while(action != 'q')
                         findRecordInfo = dBMS.FindRecord(new Record(key));
                         if (findRecordInfo.record.GetKey() == key)
                         {
-                           // Console.WriteLine();
-                          //  Console.WriteLine(findRecordInfo.record.ToString());
+                            Console.WriteLine(findRecordInfo.record.ToString());
                         }
                         break;
                     case 'o':                        

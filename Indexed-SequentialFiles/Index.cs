@@ -13,7 +13,6 @@ namespace Indexed_SequentialFiles
 
 
         public static int GetSize() { return 2 * sizeof(int); }
-        //konstruktor
         public Index(int key, int pageNumber)
         {
             this.key = key;

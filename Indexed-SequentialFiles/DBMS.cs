@@ -189,7 +189,6 @@ namespace Indexed_SequentialFiles
             findRecordInfo.record = null;
             return findRecordInfo;
         }
-        // zwraca rekord z danym kluczem lub poprzedni/pusty
         /*
          *  If record returned in struct contains:
          *  - key = -1 than record with given key doesn't exist and record with given key can be inserted there
@@ -228,10 +227,6 @@ namespace Indexed_SequentialFiles
                     findRecordInfo.positionOnPage = pageCount;
                     return findRecordInfo;
                 }                
-                /*this.mainAreaPage.SetRecord(pageCount, record);
-                this.mainAreaPage.SortRecords();
-                this.mainAreaReaderWriter.WritePageOfRecords(pageNumber, this.mainAreaPage.GetRecords());*/
-
             }
             else
             {
@@ -239,18 +234,7 @@ namespace Indexed_SequentialFiles
                 int position = this.Page.FindLargestSmaller(record.GetKey());
                 FindRecordInfo findRecordInfoOverflow = this.FindRecordInOverflowArea(record.GetKey(), recordMainArea.GetNextRecord());
                 if (findRecordInfoOverflow.record == null)
-                {
-                   /* int pageNumberOverflow = Utils.CalculatePageNumberRecord((short)this.numberOfRecordsOverflowArea);
-                    if (pageNumberOverflow != this.pageNumberOverflowArea)
-                    {
-                        this.pageNumberOverflowArea = pageNumberOverflow;
-                        this.overflowPage.SetRecords(overflowAreaReaderWriter.ReadPageOfRecords(this.pageNumberOverflowArea));
-                    }
-                    recordMainArea.SetNextRecord((short)this.numberOfRecordsOverflowArea);
-                    this.overflowPage.SetRecord(Utils.CalculatePositionOnPage((short)this.numberOfRecordsOverflowArea), record);
-                    overflowAreaReaderWriter.WritePageOfRecords(Utils.CalculatePageNumberRecord((short)this.numberOfRecordsOverflowArea), this.overflowPage.GetRecords());
-                    this.mainAreaReaderWriter.WritePageOfRecords(this.pageNumberMainArea, this.mainAreaPage.GetRecords());
-                    ++this.numberOfRecordsOverflowArea;*/
+                {                 
                     findRecordInfo.readingMainArea = true;
                     findRecordInfo.record = recordMainArea;
                     findRecordInfo.readerWriter = this.mainAreaReaderWriter;
@@ -265,30 +249,7 @@ namespace Indexed_SequentialFiles
                     findRecordInfo.readerWriter = this.overflowAreaReaderWriter;
                     findRecordInfo.pageNumber = findRecordInfoOverflow.pageNumber;
                     findRecordInfo.positionOnPage = findRecordInfoOverflow.positionOnPage;
-                    return findRecordInfo;
-                    /*if (record.GetKey() != 8)
-                        record.SetNextRecord(recordOverflowArea.GetNextRecord());
-                    recordOverflowArea.SetNextRecord((short) this.numberOfRecordsOverflowArea);                    
-                    int pageNumberOverflow = Utils.CalculatePageNumberRecord((short)this.numberOfRecordsOverflowArea);
-                    int overflowPosition = Utils.CalculatePositionOnPage((short)this.numberOfRecordsOverflowArea);
-                    if(pageNumberOverflow != this.pageNumberOverflowArea)
-                    {
-                        this.overflowAreaReaderWriter.WritePageOfRecords(this.pageNumberOverflowArea, this.overflowPage.GetRecords());
-                        this.pageNumberOverflowArea = pageNumberOverflow;
-                        if (overflowPosition == 0)
-                        {
-                            this.overflowPage.SetEmptyRecords();
-                        }
-                        else
-                        {
-                            this.overflowPage.SetRecords(this.overflowAreaReaderWriter.ReadPageOfRecords(this.pageNumberOverflowArea));
-                        }                     
-                    }                   
-                    this.overflowPage.SetRecord(overflowPosition, record);
-                    this.overflowAreaReaderWriter.WritePageOfRecords(pageNumberOverflow, this.overflowPage.GetRecords());
-                    ++this.numberOfRecordsOverflowArea;
-                    return;*/
-                    
+                    return findRecordInfo;           
                 }
             }
         }
